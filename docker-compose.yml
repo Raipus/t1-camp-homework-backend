@@ -1,0 +1,29 @@
+services:
+  db:
+    image: postgres:16
+    restart: always
+    environment:
+      POSTGRES_DB: taskdb
+      POSTGRES_USER: taskuser
+      POSTGRES_PASSWORD: taskpass
+    ports:
+      - '5432:5432'
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+  backend:
+    build: .
+    depends_on:
+      - db
+    environment:
+      DB_URL: postgres://taskuser:taskpass@db:5432/taskdb
+      DB_SSL: 'false'
+      PORT: 3000
+    ports:
+      - '3000:3000'
+    volumes:
+      - .:/app
+    command: npm run start:dev
+
+volumes:
+  db_data:

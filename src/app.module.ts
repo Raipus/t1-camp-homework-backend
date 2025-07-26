@@ -10,17 +10,19 @@ import { TypeOrmModule } from '@nestjs/typeorm';
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        type: 'postgres',
-        url: configService.get('DB_URL'),
-        ssl: {
-          rejectUnauthorized: false,
-        },
-        synchronize: false,
-        logging: 'all',
-        entities: [__dirname + '/**/*.entity{.ts,.js}'],
-        migrations: [__dirname + '/migrations/**/*{.ts,.js}'],
-      }),
+      useFactory: (configService: ConfigService) => {
+        const sslEnabled = configService.get<string>('DB_SSL') === 'true';
+        return {
+          type: 'postgres',
+          url: configService.get<string>('DB_URL'),
+          ssl: sslEnabled ? { rejectUnauthorized: false } : false,
+          synchronize: false,
+          logging: 'all',
+          entities: [__dirname + '/**/*.entity{.ts,.js}'],
+          migrations: [__dirname + '/migrations/**/*{.ts,.js}'],
+          migrationsRun: true,
+        };
+      },
     }),
   ],
   controllers: [],
